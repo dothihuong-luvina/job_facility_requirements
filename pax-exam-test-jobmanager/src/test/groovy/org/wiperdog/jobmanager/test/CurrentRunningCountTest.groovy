@@ -98,17 +98,10 @@ public class CurrentRunningCountTest {
 		jf.scheduleJob(jd2, tr2);
 		
 		Thread.sleep(1000)
-		boolean flag = false;
-		while(true){
-			System.out.println("Current Running Count: " + jc.getCurrentRunningCount());
-			if(jc.getCurrentRunningCount() > 0) {
-				System.out.println("Current Running Count: " + jc.getCurrentRunningCount());
-				assertEquals(1, jc.getCurrentRunningCount());
-				flag = true;
-				break;
-			}
-		}
-		assertTrue(flag);
+		assertEquals(1, jc.getCurrentRunningCount());
+		
+		jf.unscheduleJob(tr1);
+		jf.unscheduleJob(tr2);
 	}
 	
 	/**
@@ -116,15 +109,15 @@ public class CurrentRunningCountTest {
 	 * Prevent the concurrent executing job based on pre-configured number of concurrency.
 	 * Expected: two job running and CurrentRunningCount is 2.
 	 */
-//	@Test
+	@Test
 	public void current_running_count_02() throws Exception {
 		// number job running will be corresponding to concurrency
-		String jcname = "JobClass";
+		String jcname = "JobClass1";
 		int concurrency = 2;
 		long maxruntime = 20000; 
 		long maxwaittime = 20000;
-		String jobName1 = "jobTest1";
-		String jobName2 = "jobTest2";
+		String jobName1 = "jobTest3";
+		String jobName2 = "jobTest4";
 		def jc = jf.createJobClass(jcname, concurrency, maxruntime, maxwaittime);
 		jf.assignJobClass(jobName1, jcname);
 		jf.assignJobClass(jobName2, jcname);
@@ -140,17 +133,10 @@ public class CurrentRunningCountTest {
 		jf.scheduleJob(jd2, tr2);
 		
 		Thread.sleep(1000);
-		boolean flag = false;
-		while(true){
-			System.out.println("Current Running Count: " + jc.getCurrentRunningCount());
-			if(jc.getCurrentRunningCount() > 1) {
-				System.out.println("Current Running Count: " + jc.getCurrentRunningCount());
-				assertEquals(2, jc.getCurrentRunningCount());
-				flag = true;
-				break;
-			}
-		}
-		assertTrue(flag);
+		assertEquals(2, jc.getCurrentRunningCount());
+		
+		jf.unscheduleJob(tr1);
+		jf.unscheduleJob(tr2);
 	}
 }
 	
