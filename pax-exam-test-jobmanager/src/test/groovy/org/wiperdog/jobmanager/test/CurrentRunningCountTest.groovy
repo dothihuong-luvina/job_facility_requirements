@@ -25,10 +25,13 @@ public class CurrentRunningCountTest {
 	public CurrentRunningCountTest() {
 	}
 	
-	public static final String PATH_TO_CLASS = "src/resource/JobExecutableImpl.groovy"
+	public static final String PATH_TO_CLASS = "src/resource/JobExecutableImpl.groovy"	
+	public static final String PATH_TO_JOBINTERUPTCLASS = "src/resource/InterruptJob.groovy"
+	
 	String path = System.getProperty("user.dir");
 	def jf;
 	Class jobExecutableCls;
+	Class jobInteruptCls;
 	
 	@Inject
 	private org.osgi.framework.BundleContext context;
@@ -64,6 +67,7 @@ public class CurrentRunningCountTest {
 		// load class
 		ClassLoaderUtil lc = new ClassLoaderUtil();
 		jobExecutableCls = lc.getCls(PATH_TO_CLASS);
+		jobInteruptCls = lc.getCls(PATH_TO_JOBINTERUPTCLASS);
 	}
 	
 	@After
@@ -88,9 +92,11 @@ public class CurrentRunningCountTest {
 		jf.assignJobClass(jobName1, jcname);
 		jf.assignJobClass(jobName2, jcname);
 		// create job detail
-		String [] joblist = ["/bin/sleep", "10"]
-		def jd1 = jf.createJob(jobName1, joblist, false);
-		def jd2 = jf.createJob(jobName2, joblist, false);
+		def executable1 = jobInteruptCls.newInstance(jobName1, "class", "sender");
+		def executable2 = jobInteruptCls.newInstance(jobName2, "class", "sender");
+		def jd1 = jf.createJob(executable1);
+		def jd2 = jf.createJob(executable2);
+		
 		// create trigger and schedule for jobName1
 		def tr1 = jf.createTrigger(jobName1, 0);
 		jf.scheduleJob(jd1, tr1);
@@ -123,9 +129,11 @@ public class CurrentRunningCountTest {
 		jf.assignJobClass(jobName1, jcname);
 		jf.assignJobClass(jobName2, jcname);
 		// create job detail
-		String [] joblist = ["/bin/sleep", "10"]
-		def jd1 = jf.createJob(jobName1, joblist, false);
-		def jd2 = jf.createJob(jobName2, joblist, false);
+		def executable1 = jobInteruptCls.newInstance(jobName1, "class", "sender");
+		def executable2 = jobInteruptCls.newInstance(jobName2, "class", "sender");
+		def jd1 = jf.createJob(executable1);
+		def jd2 = jf.createJob(executable2);
+		
 		// create trigger and schedule for jobName1
 		def tr1 = jf.createTrigger(jobName1, 0);
 		jf.scheduleJob(jd1, tr1);
