@@ -50,8 +50,9 @@ public class PauseResumeScheduleTest {
 		mavenBundle("commons-digester", "commons-digester", "2.0").startLevel(2),
 		wrappedBundle(mavenBundle("c3p0", "c3p0", "0.9.1.2").startLevel(3)),
 		mavenBundle("org.wiperdog", "org.wiperdog.rshell.api", "0.1.0").startLevel(3),
-		mavenBundle("org.quartz-scheduler", "quartz", "2.2.0").startLevel(3),
-		mavenBundle("org.wiperdog", "org.wiperdog.jobmanager", "0.2.1").startLevel(3),
+		mavenBundle("org.quartz-scheduler", "quartz", "2.2.1").startLevel(3),
+		//mavenBundle("org.wiperdog", "org.wiperdog.jobmanager", "0.2.1").startLevel(3),		
+		mavenBundle("org.wiperdog", "org.wiperdog.jobmanager", "0.2.3-SNAPSHOT").startLevel(3),
 		junitBundles()
 		);
 	}
