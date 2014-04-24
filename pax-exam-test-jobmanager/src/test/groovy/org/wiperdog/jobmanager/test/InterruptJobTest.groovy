@@ -79,8 +79,9 @@ public class InterruptJobTest {
 	@Test
 	public void interrupt_job_01() throws Exception {
 		String jobName1 = "jobTest1";
-		String [] joblist = ["/bin/sleep", "10"]
-		def jd1 = jf.createJob(jobName1, joblist, false);
+		
+		def executable1 = jobInteruptCls.newInstance(jobName1, "class", "sender");
+		def jd1 = jf.createJob(executable1);
 		
 		def tr1 = jf.createTrigger(jobName1, 100);
 		jf.scheduleJob(jd1, tr1);
@@ -110,8 +111,8 @@ public class InterruptJobTest {
 		jc.setConcurrency(concurrency)
 		jc.setMaxRunTime(maxruntime)		
 		
-		String [] joblist = ["/bin/sleep", "10"]
-		def jd1 = jf.createJob(jobName1, joblist, false);
+		def executable1 = jobInteruptCls.newInstance(jobName1, "class", "sender");
+		def jd1 = jf.createJob(executable1);
 		
 		jc.addJob(jf.jobKeyForName(jobName1))
 		
@@ -120,15 +121,19 @@ public class InterruptJobTest {
 		
 		Thread.sleep(500)
 		
-		def jobRunningcount1 = jf.getJobRunningCount(jobName1)
-		assertEquals(1, jobRunningcount1)
+		def jobRunningcount = jf.getJobRunningCount(jobName1)
+		assertEquals(1, jobRunningcount)
 		
 		//After 1.5s, job will be interrupted
 		Thread.sleep(1000)
-		def jobRunningcount2 = jf.getJobRunningCount(jobName1)
-		assertEquals(0, jobRunningcount2)
+		jobRunningcount = jf.getJobRunningCount(jobName1)
+		assertEquals(0, jobRunningcount)
+		
+		Thread.sleep(10000)
+		jobRunningcount = jf.getJobRunningCount(jobName1)
+		assertEquals(0, jobRunningcount)
 	}
-	
+
 	/**
 	 * Interrupt if job wait time > maxwaittime of job class.
 	 * Expected: Waitting job will be given up.
@@ -141,46 +146,84 @@ public class InterruptJobTest {
 		long maxwaittime = 1000;
 		String jobName1 = "jobTest1";
 		String jobName2 = "jobTest2";
-		def jc = jf.createJobClass(jcname, concurrency, maxwaittime, maxruntime);
-		jf.assignJobClass(jobName1, jcname);
-		jf.assignJobClass(jobName2, jcname);
+		def jc = jf.createJobClass(jcname, concurrency, maxwaittime, Long.MAX_VALUE);
+		
 		def executable1 = jobInteruptCls.newInstance(jobName1, "class", "sender");
 		def executable2 = jobInteruptCls.newInstance(jobName2, "class", "sender");
 		def jd1 = jf.createJob(executable1);
 		def jd2 = jf.createJob(executable2);
+		
+		jc.addJob(jf.jobKeyForName(jobName1))
+		jc.addJob(jf.jobKeyForName(jobName2))
+		
 		def tr1 = jf.createTrigger(jobName1, 0);
 		def tr2 = jf.createTrigger(jobName2, 100);
 		jf.scheduleJob(jd1, tr1);
 		jf.scheduleJob(jd2, tr2);
 		
+		//Job1 successfully execute, but job 2 will be given up.
+		Thread.currentThread().sleep(15000)
+		println (jobName2 + " will be interrupt !!!")
+		
+		// wait for interrupt job
+		def jobStatus1 = executable1.getStatus()
+		def jobStatus2 = executable2.getStatus()
+		assertEquals("finish", jobStatus1)
+		assertEquals("init", jobStatus2)
+	}
+
+	/**
+	 * Interrupt running job if job run time > maxruntime of job class (2jobs)
+	 * Expected: Waitting job will be interrupted.
+	 */
+	@Test
+	public void interrupt_job_04() throws Exception {
+		String jcname = "class";
+		int concurrency = 1;
+		long maxruntime = 1000;
+		long maxwaittime = 1000;
+		String jobName1 = "jobTest1";
+		String jobName2 = "jobTest2";
+		def jc = jf.createJobClass(jcname, concurrency, maxwaittime, maxruntime);
+		
+		def executable1 = jobInteruptCls.newInstance(jobName1, "class", "sender");
+		def executable2 = jobInteruptCls.newInstance(jobName2, "class", "sender");
+		def jd1 = jf.createJob(executable1);
+		def jd2 = jf.createJob(executable2);
+		
+		jc.addJob(jf.jobKeyForName(jobName1))
+		jc.addJob(jf.jobKeyForName(jobName2))
+		
+		def tr1 = jf.createTrigger(jobName1, 0);
+		def tr2 = jf.createTrigger(jobName2, 100);
+		jf.scheduleJob(jd1, tr1);
+		jf.scheduleJob(jd2, tr2);
+		
+		//Interrupt job 1
 		Thread.currentThread().sleep(500)
-		// interrupt job running
+		println (jobName1 + " is running but will be interrupted !!!")
+		
+		// wait for interrupt job
 		def jobStatus1 = executable1.getStatus()
 		def isInterrupt1 = executable1.checkInterrupt()
 		def jobStatus2 = executable2.getStatus()
 		def isInterrupt2 = executable2.checkInterrupt()
-		assertEquals(jobStatus1, "running and will be interrupt")		
-		assertEquals(jobStatus2, "init")		
-		assertEquals(isInterrupt1, true)		
-		assertEquals(isInterrupt2, false)
-		def listRunningJob1 = jf.getJobRunningCount(jobName1)
-		assertEquals(1,listRunningJob1)
-		def listRunningJob2 = jf.getJobRunningCount(jobName2)
-		assertEquals(0,listRunningJob2)
+		assertEquals("running and will be interrupt", jobStatus1)
+		assertEquals("init", jobStatus2)
+		assertEquals(true, isInterrupt1)
+		assertEquals(false, isInterrupt2)
 		
-		//Interrupt job
 		Thread.currentThread().sleep(15000)
-		println (jobName2 + " will be given up !!!")
+		println (jobName2 + " will be interrupt !!!")
 		
 		// wait for interrupt job
 		jobStatus1 = executable1.getStatus()
 		isInterrupt1 = executable1.checkInterrupt()
 		jobStatus2 = executable2.getStatus()
 		isInterrupt2 = executable2.checkInterrupt()
-		assertEquals(jobStatus1, "finish")		
-		assertEquals(jobStatus2, "init")		
-		assertEquals(isInterrupt1, false)		
-		assertEquals(isInterrupt2, false)
+		assertEquals("running and will be interrupt", jobStatus1)
+		assertEquals("running and will be interrupt", jobStatus2)
+		assertEquals(true, isInterrupt1)
+		assertEquals(true, isInterrupt2)
 	}
 }
-	
