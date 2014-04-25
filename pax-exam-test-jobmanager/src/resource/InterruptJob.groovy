@@ -18,12 +18,12 @@ public class InterruptJob implements JobExecutable {
 	}
 	
 	public Object execute(JobDataMap params) throws InterruptedException {
-		this.status = "running and will be interrupt"
+		println "running and will be interrupt"
 		this.isInterrupt = true
 		
 		// TODO Auto-generated method stub
 		Thread.sleep(10000)
-		this.status = "finish"		
+		println "finish"		
 		this.isInterrupt = false
 		return null;
 	}

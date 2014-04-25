@@ -15,7 +15,9 @@ public class JobExecutableImpl implements JobExecutable {
 	}
 	
 	public Object execute(JobDataMap params) throws InterruptedException {
-		// TODO Auto-generated method stub
+		println "JobExecutable start========="
+		Thread.sleep(1000)
+		println "JobExecutable end========="
 		return null;
 	}
 
@@ -32,7 +34,7 @@ public class JobExecutableImpl implements JobExecutable {
 
 	public void stop(Thread thread) {
 		// TODO Auto-generated method stub
-		
+		thread.interrupt()
 	}
 
 }
